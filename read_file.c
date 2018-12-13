@@ -9,6 +9,9 @@ int main(void)
 	struct partition tf;//total file 
 	int root_node; 
 	struct inode* root_ptr;
+	int user_node;
+	struct inode* user_ptr;
+	int find = 0;
 
 	fptr = fopen("disk.img","r");
 	if(fptr == NULL){
@@ -58,6 +61,54 @@ int main(void)
 				read_size += den->dir_length;
 				printf("file name : %s\n",*den->n_pad);
 			}	
+		}
+
+               /* ============================FInd file==================*/
+	
+		for(int l = 0; l< block_num; l ++){
+			struct blocks* bp = &tf.data_blocks[block_store[l]]; 
+			printf("Read block : %d\n",block_store[l]);
+			struct dentry* den;
+			char* sp = bp->d;
+			int read_size = 0 ;
+			while(*sp && read_size < 1024){ //only read 1 data block
+				den = (struct dentry *) sp;
+				sp += den->dir_length;
+				read_size += den->dir_length;
+				printf("file name : %s\n",*den->n_pad);
+
+				if(strcmp(*den->n_pad, "file_1") == 0) //to find if file_1 exist
+				{
+					printf("found %s, enter inode %d\n", *den->n_pad, den->inode);
+					user_node = den->inode;
+					user_ptr = &tf.inode_table[user_node];
+					printf("user node is :%d\n",user_node);
+					find = 1; 
+					break;
+				}
+			}	
+			if( find == 1)
+				break;
+		}
+
+		/*========================access to the inode of file ==================*/
+
+		int file_size = user_ptr -> size;
+		printf("file_size : %d",file_size);
+		block_num = 0 ;
+		block_store[0x6];
+		while(file_size > 0 ){
+
+			block_store[block_num]=user_ptr->blocks[block_num];
+			printf("data block : %d\n", block_store[block_num]);
+			block_num ++;
+			file_size = file_size - 1000;
+
+		}
+		for(int l =0 ; l < block_num ; l ++){
+    			struct blocks* bp = &tf.data_blocks[block_store[l]]; 
+               	 	printf("Read block : %d\n",block_store[l]);
+			printf("Data : %s\n", bp->d);
 		}
 
 
